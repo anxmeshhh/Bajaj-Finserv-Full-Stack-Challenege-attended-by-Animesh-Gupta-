@@ -66,7 +66,7 @@
 
         .input-group label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 0;
             font-weight: 600;
             font-size: 0.85rem;
             text-transform: uppercase;
@@ -74,9 +74,35 @@
             color: var(--text-secondary);
         }
 
+        .input-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .btn-test {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-test:hover {
+            color: var(--text-primary);
+            border-color: var(--border-highlight);
+        }
+
         textarea {
             width: 100%;
-            height: 120px;
+            height: 140px;
             background: var(--surface-color);
             border: 1px solid var(--border-color);
             border-radius: 4px;
@@ -305,6 +331,9 @@
         /* Responsive */
         @media (max-width: 768px) {
             .grid-3 { grid-template-columns: 1fr; }
+            .input-header-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .test-cases { display: flex; flex-wrap: wrap; gap: 5px; }
+            .btn-test { margin-left: 0; }
         }
     </style>
 </head>
@@ -317,7 +346,16 @@
         </div>
 
         <div class="input-group">
-            <label for="input">JSON Payload / Data Input</label>
+            <div class="input-header-row">
+                <label for="input">JSON Payload / Data Input</label>
+                <div class="test-cases">
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); margin-right: 5px; font-weight: 600;">TEST BANK:</span>
+                    <button class="btn-test" onclick="loadTestCase('basic')">Basic</button>
+                    <button class="btn-test" onclick="loadTestCase('diamond')">Diamond</button>
+                    <button class="btn-test" onclick="loadTestCase('cycle')">Cycles</button>
+                    <button class="btn-test" onclick="loadTestCase('stress')">Stress Test</button>
+                </div>
+            </div>
             <textarea id="input" spellcheck="false">
 {
   "data": ["A->B", "A->C", "B->D", "C->E", "E->F", "X->Y", "Y->Z", "Z->X", "P->Q", "Q->R", "G->H", "G->H", "G->I", "hello", "1->2", "A->"]
@@ -372,6 +410,44 @@
     </div>
 
     <script>
+        const testCases = {
+            basic: {
+                "data": [
+                    "A->B", "B->C", "C->D", "D->E"
+                ]
+            },
+            diamond: {
+                "data": [
+                    "A->B", "A->C", "B->D", "C->D", "D->E"
+                ]
+            },
+            cycle: {
+                "data": [
+                    "J->K", "K->L", "L->I", "I->J",
+                    "U->V", "V->W", "W->X", "X->V", "W->Y", "Y->Z"
+                ]
+            },
+            stress: {
+                "data": [
+                    "A->B", "B->C", "C->D", "D->E", "E->F",
+                    "H->I", "G->I", 
+                    "X->Y", "X->Y", "X->Y",
+                    "P->Q", "Q->R", "R->P",
+                    "   V->W   ",
+                    "invalid_text", "1->2", "A-B", "->", "Z->"
+                ]
+            }
+        };
+
+        function loadTestCase(type) {
+            const textarea = document.getElementById("input");
+            if (testCases[type]) {
+                textarea.value = JSON.stringify(testCases[type], null, 2);
+                textarea.style.borderColor = "var(--accent)";
+                setTimeout(() => { textarea.style.borderColor = "var(--border-color)"; }, 300);
+            }
+        }
+
         async function sendData() {
             const analyzeBtn = document.getElementById('analyzeBtn');
             const loading = document.getElementById('loading');
