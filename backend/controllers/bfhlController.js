@@ -47,7 +47,7 @@ const handleBFHL = (req, res) => {
         // 6. Final response
         res.json({
             user_id: "animeshgupta_16042004",   // update DOB if needed
-            email_id: "your_email@srmist.edu.in",
+            email_id: "ag0698@srmist.edu.in",
             college_roll_number: "RA2311026010375",
             hierarchies: hierarchies,
             invalid_entries: invalidEntries,
