@@ -10,7 +10,7 @@ const findRoots = (graph, childSet) => {
     return roots;
 };
 
-// DFS with cycle detection + depth
+
 const dfs = (node, graph, visited, stack) => {
     if (stack.has(node)) {
         return { hasCycle: true };

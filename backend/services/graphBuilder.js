@@ -6,12 +6,12 @@ const buildGraph = (edges) => {
     edges.forEach((edge) => {
         const [parent, child] = edge.split("->");
 
-        // Initialize parent node
+
         if (!adjacencyList[parent]) {
             adjacencyList[parent] = [];
         }
 
-        // Diamond case: only first parent allowed
+
         if (!parentMap[child]) {
             adjacencyList[parent].push(child);
             parentMap[child] = parent;
@@ -19,7 +19,7 @@ const buildGraph = (edges) => {
 
         childSet.add(child);
 
-        // Ensure child exists in graph
+
         if (!adjacencyList[child]) {
             adjacencyList[child] = [];
         }

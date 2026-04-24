@@ -13,19 +13,19 @@ const handleBFHL = (req, res) => {
             });
         }
 
-        // 1. Validate input
+
         const { validEdges, invalidEntries } = validateInput(data);
 
-        // 2. Remove duplicates
+
         const { uniqueEdges, duplicateEdges } = removeDuplicates(validEdges);
 
-        // 3. Build graph
+
         const { adjacencyList, childSet } = buildGraph(uniqueEdges);
 
-        // 4. Build hierarchies (tree + cycle + depth)
+
         const hierarchies = buildHierarchies(adjacencyList, childSet);
 
-        // 5. Summary calculations
+
         const totalTrees = hierarchies.filter(h => !h.has_cycle).length;
         const totalCycles = hierarchies.filter(h => h.has_cycle).length;
 
@@ -44,9 +44,9 @@ const handleBFHL = (req, res) => {
             }
         });
 
-        // 6. Final response
+
         res.json({
-            user_id: "animeshgupta_16042004",   // update DOB if needed
+            user_id: "animeshgupta_16042004",
             email_id: "ag0698@srmist.edu.in",
             college_roll_number: "RA2311026010375",
             hierarchies: hierarchies,
