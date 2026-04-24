@@ -1,0 +1,31 @@
+const buildGraph = (edges) => {
+    const adjacencyList = {};
+    const childSet = new Set();
+    const parentMap = {};
+
+    edges.forEach((edge) => {
+        const [parent, child] = edge.split("->");
+
+        // Initialize parent node
+        if (!adjacencyList[parent]) {
+            adjacencyList[parent] = [];
+        }
+
+        // Diamond case: only first parent allowed
+        if (!parentMap[child]) {
+            adjacencyList[parent].push(child);
+            parentMap[child] = parent;
+        }
+
+        childSet.add(child);
+
+        // Ensure child exists in graph
+        if (!adjacencyList[child]) {
+            adjacencyList[child] = [];
+        }
+    });
+
+    return { adjacencyList, childSet };
+};
+
+module.exports = { buildGraph };

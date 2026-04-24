@@ -1,23 +1,30 @@
+const { validateInput } = require("../services/validator");
+const { removeDuplicates } = require("../services/duplicateHandler");
+const { buildGraph } = require("../services/graphBuilder");
+
 const handleBFHL = (req, res) => {
     try {
-        const body = req.body || {};
-        const { data } = body;
+        const data = req.body?.data;
 
         if (!data || !Array.isArray(data)) {
             return res.status(400).json({
-                is_success: false,
                 error: "Invalid input format"
             });
         }
 
+        const { validEdges, invalidEntries } = validateInput(data);
+        const { uniqueEdges, duplicateEdges } = removeDuplicates(validEdges);
+
+        const { adjacencyList, childSet } = buildGraph(uniqueEdges);
+
         res.json({
-            message: "API is working",
-            received_data: data
+            graph: adjacencyList,
+            invalid_entries: invalidEntries,
+            duplicate_edges: duplicateEdges
         });
 
     } catch (error) {
-        console.error(error);   // 👈 ADD THIS LINE
-
+        console.error(error);
         res.status(500).json({
             error: "Internal Server Error"
         });
