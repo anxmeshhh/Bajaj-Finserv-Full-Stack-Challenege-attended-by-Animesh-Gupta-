@@ -385,8 +385,22 @@
             analyzeBtn.style.opacity = '0.5';
 
             try {
-                const inputText = document.getElementById("input").value;
-                const jsonData = JSON.parse(inputText);
+                let inputText = document.getElementById("input").value.trim();
+                
+                // Forgiving JSON parsing
+                let jsonData;
+                try {
+                    jsonData = JSON.parse(inputText);
+                } catch (e) {
+                    throw new Error("Invalid JSON. Please ensure it is properly formatted.");
+                }
+
+                // If user pasted a raw array instead of { "data": [...] }, auto-wrap it
+                if (Array.isArray(jsonData)) {
+                    jsonData = { data: jsonData };
+                } else if (!jsonData.data) {
+                    throw new Error("JSON must contain a 'data' array.");
+                }
 
                 const apiUrl = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:"
                     ? "http://localhost:3000/bfhl" 
