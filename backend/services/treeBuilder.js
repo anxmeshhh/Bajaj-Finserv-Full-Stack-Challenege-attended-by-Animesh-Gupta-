@@ -1,103 +1,87 @@
-const findRoots = (graph, childSet) => {
-    const roots = [];
-
-    Object.keys(graph).forEach((node) => {
-        if (!childSet.has(node)) {
-            roots.push(node);
-        }
-    });
-
-    return roots;
-};
-
-
-const dfs = (node, graph, visited, stack) => {
-    if (stack.has(node)) {
-        return { hasCycle: true };
-    }
-
-    if (visited.has(node)) {
-        return { subtree: {}, depth: 0 };
-    }
-
-    visited.add(node);
-    stack.add(node);
-
-    let maxDepth = 0;
+const buildTreeRecursive = (node, adjacencyList) => {
     const subtree = {};
+    let maxDepth = 0;
 
-    for (const child of graph[node]) {
-        const result = dfs(child, graph, visited, stack);
-
-        if (result.hasCycle) {
-            return { hasCycle: true };
-        }
-
+    for (const child of adjacencyList[node]) {
+        const result = buildTreeRecursive(child, adjacencyList);
         subtree[child] = result.subtree;
         maxDepth = Math.max(maxDepth, result.depth);
     }
 
-    stack.delete(node);
-
-    return {
-        subtree,
-        depth: maxDepth + 1
-    };
+    return { subtree, depth: maxDepth + 1 };
 };
 
-const buildHierarchies = (graph, childSet) => {
-    const visitedGlobal = new Set();
+const buildHierarchies = (adjacencyList, activeNodes, inDegrees) => {
     const result = [];
+    
+    // We treat the graph as undirected to find Weakly Connected Components (WCC)
+    const undirectedAdj = {};
+    for (const node of activeNodes) {
+        undirectedAdj[node] = [];
+    }
+    
+    for (const node of activeNodes) {
+        for (const child of adjacencyList[node]) {
+            undirectedAdj[node].push(child);
+            undirectedAdj[child].push(node);
+        }
+    }
 
-    // Step 1: find actual roots
-    let roots = findRoots(graph, childSet);
+    const globalVisited = new Set();
+    const wccs = [];
 
-    // Step 2: process normal trees first
-    roots.forEach((root) => {
-        if (visitedGlobal.has(root)) return;
+    // Find all WCCs using BFS
+    for (const node of activeNodes) {
+        if (!globalVisited.has(node)) {
+            const wcc = [];
+            const queue = [node];
+            globalVisited.add(node);
 
-        const visited = new Set();
-        const stack = new Set();
+            while (queue.length > 0) {
+                const current = queue.shift();
+                wcc.push(current);
 
-        const dfsResult = dfs(root, graph, visited, stack);
+                for (const neighbor of undirectedAdj[current]) {
+                    if (!globalVisited.has(neighbor)) {
+                        globalVisited.add(neighbor);
+                        queue.push(neighbor);
+                    }
+                }
+            }
+            wccs.push(wcc);
+        }
+    }
 
-        visited.forEach(n => visitedGlobal.add(n));
+    // Process each WCC mathematically
+    for (const wcc of wccs) {
+        // Find roots in this WCC (nodes with inDegree 0)
+        const wccRoots = wcc.filter(node => inDegrees[node] === 0);
 
-        if (dfsResult.hasCycle) {
+        if (wccRoots.length > 0) {
+            // It's a valid tree (since inDegree <= 1, there's exactly 1 root per WCC)
+            wccRoots.sort(); 
+            const root = wccRoots[0];
+            
+            const treeData = buildTreeRecursive(root, adjacencyList);
+            
             result.push({
-                root,
+                root: root,
+                tree: { [root]: treeData.subtree },
+                depth: treeData.depth
+            });
+        } else {
+            // It's a cyclic group (0 roots)
+            // Pick lexicographically smallest node
+            wcc.sort();
+            const root = wcc[0];
+            
+            result.push({
+                root: root,
                 tree: {},
                 has_cycle: true
             });
-        } else {
-            const tree = {};
-            tree[root] = dfsResult.subtree;
-
-            result.push({
-                root,
-                tree,
-                depth: dfsResult.depth
-            });
         }
-    });
-
-    // Step 3: handle remaining nodes (cycles)
-    Object.keys(graph).forEach((node) => {
-        if (visitedGlobal.has(node)) return;
-
-        const visited = new Set();
-        const stack = new Set();
-
-        const dfsResult = dfs(node, graph, visited, stack);
-
-        visited.forEach(n => visitedGlobal.add(n));
-
-        result.push({
-            root: node,
-            tree: {},
-            has_cycle: true
-        });
-    });
+    }
 
     return result;
 };

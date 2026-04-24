@@ -1,16 +1,16 @@
 const isValidEdge = (edge) => {
-    if (typeof edge !== "string") return false;
+    if (typeof edge !== "string") return { valid: false, clean: "" };
 
     const trimmed = edge.trim();
     const regex = /^[A-Z]->[A-Z]$/;
 
-    if (!regex.test(trimmed)) return false;
+    if (!regex.test(trimmed)) return { valid: false, clean: trimmed };
 
     const [parent, child] = trimmed.split("->");
 
-    if (parent === child) return false;
+    if (parent === child) return { valid: false, clean: trimmed }; // Self-loop treated as invalid
 
-    return true;
+    return { valid: true, clean: trimmed };
 };
 
 const validateInput = (data) => {
@@ -18,10 +18,11 @@ const validateInput = (data) => {
     const invalidEntries = [];
 
     data.forEach((edge) => {
-        if (isValidEdge(edge)) {
-            validEdges.push(edge.trim());
+        const { valid, clean } = isValidEdge(edge);
+        if (valid) {
+            validEdges.push(clean);
         } else {
-            invalidEntries.push(edge);
+            invalidEntries.push(typeof edge === "string" ? edge : String(edge));
         }
     });
 

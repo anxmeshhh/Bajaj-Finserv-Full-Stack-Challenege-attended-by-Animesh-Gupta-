@@ -19,13 +19,13 @@ const handleBFHL = (req, res) => {
 
         const { uniqueEdges, duplicateEdges } = removeDuplicates(validEdges);
 
+        // 3. Build graph
+        const { adjacencyList, activeNodes, inDegrees } = buildGraph(uniqueEdges);
 
-        const { adjacencyList, childSet } = buildGraph(uniqueEdges);
+        // 4. Build hierarchies (tree + cycle + depth)
+        const hierarchies = buildHierarchies(adjacencyList, activeNodes, inDegrees);
 
-
-        const hierarchies = buildHierarchies(adjacencyList, childSet);
-
-
+        // 5. Summary calculations
         const totalTrees = hierarchies.filter(h => !h.has_cycle).length;
         const totalCycles = hierarchies.filter(h => h.has_cycle).length;
 
@@ -36,7 +36,7 @@ const handleBFHL = (req, res) => {
             if (!h.has_cycle) {
                 if (
                     h.depth > maxDepth ||
-                    (h.depth === maxDepth && h.root < largestTreeRoot)
+                    (h.depth === maxDepth && (largestTreeRoot === null || h.root < largestTreeRoot))
                 ) {
                     maxDepth = h.depth;
                     largestTreeRoot = h.root;
